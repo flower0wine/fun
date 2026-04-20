@@ -1,0 +1,11 @@
+Model Information:
+* title:	Animation_ Walking_with Skin GLB
+* source:	https://sketchfab.com/3d-models/animation--walking-with-skin-glb-60a2fb09b4e94e78ad66c62543aa294b
+* author:	surveyGL (https://sketchfab.com/surveyGL)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Animation_ Walking_with Skin GLB" (https://sketchfab.com/3d-models/animation--walking-with-skin-glb-60a2fb09b4e94e78ad66c62543aa294b) by surveyGL (https://sketchfab.com/surveyGL) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
