@@ -245,6 +245,10 @@
   animation: scene-in 680ms cubic-bezier(0.2, 0, 0, 1);
 }
 
+.page-is-covered .scene {
+  opacity: 0;
+}
+
 .scene {
   transition-property: transform, opacity;
   transition-duration: 320ms;

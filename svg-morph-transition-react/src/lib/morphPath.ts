@@ -1,4 +1,4 @@
-type Phase = 'idle' | 'leaving' | 'entering'
+type Phase = 'idle' | 'leaving' | 'covered' | 'entering'
 
 type Shape = {
   top: number
@@ -17,6 +17,10 @@ function shapeToPath(shape: Shape) {
 export function buildMorphPath(phase: Phase, progress: number) {
   if (phase === 'idle') {
     return shapeToPath({ top: 100, edge: 100, curve: 100 })
+  }
+
+  if (phase === 'covered') {
+    return shapeToPath({ top: 0, edge: 100, curve: 100 })
   }
 
   if (phase === 'leaving') {
@@ -44,8 +48,8 @@ export function buildMorphPath(phase: Phase, progress: number) {
 
     return shapeToPath({
       top: 0,
-      edge: mix(0, 50, local),
-      curve: 0,
+      edge: mix(100, 50, local),
+      curve: mix(100, 0, local),
     })
   }
 
@@ -54,6 +58,6 @@ export function buildMorphPath(phase: Phase, progress: number) {
   return shapeToPath({
     top: 0,
     edge: mix(50, 0, local),
-    curve: mix(0, 0, local),
+    curve: 0,
   })
 }

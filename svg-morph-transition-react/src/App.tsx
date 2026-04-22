@@ -51,7 +51,7 @@ const PAGES: Page[] = [
   },
 ]
 
-type Phase = 'idle' | 'leaving' | 'entering'
+type Phase = 'idle' | 'leaving' | 'covered' | 'entering'
 
 const LEAVE_DURATION_MS = 900
 const ENTER_DURATION_MS = 760
@@ -83,8 +83,8 @@ function App() {
   const completePhase = useEffectEvent(() => {
     if (phase === 'leaving' && pendingIndex !== null) {
       setActiveIndex(pendingIndex)
-      setPhase('entering')
-      setProgress(0)
+      setPhase('covered')
+      setProgress(1)
       return
     }
 
@@ -94,7 +94,20 @@ function App() {
   })
 
   useEffect(() => {
-    if (phase === 'idle') {
+    if (phase !== 'covered') {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setPhase('entering')
+      setProgress(0)
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [phase])
+
+  useEffect(() => {
+    if (phase === 'idle' || phase === 'covered') {
       return
     }
 
@@ -145,6 +158,10 @@ function App() {
   const pageClassName = useMemo(() => {
     if (phase === 'leaving') {
       return 'app-shell page-is-leaving'
+    }
+
+    if (phase === 'covered') {
+      return 'app-shell page-is-covered'
     }
 
     if (phase === 'entering') {

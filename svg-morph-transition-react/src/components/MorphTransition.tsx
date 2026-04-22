@@ -1,6 +1,6 @@
 import { buildMorphPath } from '../lib/morphPath'
 
-type Phase = 'idle' | 'leaving' | 'entering'
+type Phase = 'idle' | 'leaving' | 'covered' | 'entering'
 
 type MorphTransitionProps = {
   phase: Phase
