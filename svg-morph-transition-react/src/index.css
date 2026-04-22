@@ -1,0 +1,70 @@
+:root {
+  --theme-paper: #f7efe3;
+  --theme-sand: #efe1d3;
+  --theme-fog: #e5ebe4;
+  --theme-ink: #31241c;
+  --theme-muted: #736458;
+  --theme-rust: #c4664a;
+  --theme-forest: #5a7b61;
+  --theme-overlay: #3a2a21;
+  --font-sans: 'Aptos', 'Segoe UI', sans-serif;
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', serif;
+
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--theme-ink);
+  background: #f7efe3;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, #fbf5ec 0%, #f5ede1 100%);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100svh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 0.96;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  letter-spacing: -0.06em;
+}
+
+h2 {
+  letter-spacing: -0.04em;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+#root {
+  min-height: 100svh;
+}
