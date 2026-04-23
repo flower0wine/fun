@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4x4 动漫角色攻击帧播放器</title>
+  <style>
+    :root {
+      --bg-1: #0b1220;
+      --bg-2: #101a2f;
+      --panel: rgba(10, 18, 36, 0.78);
+      --panel-border: rgba(160, 190, 255, 0.18);
+      --text: #eff4ff;
+      --muted: #9fb1d6;
+      --accent: #7dd3fc;
+      --accent-2: #f59e0b;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.16), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.12), transparent 30%),
+        linear-gradient(145deg, var(--bg-1), var(--bg-2));
+      display: grid;
+      place-items: center;
+      padding: 32px 16px;
+    }
+
+    .app {
+      width: min(960px, 100%);
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero,
+    .stage {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(125, 211, 252, 0.12);
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(28px, 5vw, 48px);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 62ch;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .stage {
+      padding: 24px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .viewer {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+        linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      background-position: 0 0, 18px 18px, 0 0;
+      background-size: 36px 36px, 36px 36px, auto;
+      min-height: 420px;
+      display: grid;
+      place-items: center;
+    }
+
+    canvas {
+      width: min(72vw, 420px);
+      aspect-ratio: 1 / 1;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.4));
+    }
+
+    .empty-state {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.7;
+      transition: opacity 160ms ease;
+    }
+
+    .empty-state.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    button,
+    .file-label {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font: inherit;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+    }
+
+    button {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), #38bdf8);
+      color: #06111f;
+      font-weight: 700;
+    }
+
+    button:hover,
+    .file-label:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .file-label {
+      background: rgba(245, 158, 11, 0.15);
+      color: #ffd79a;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .stat-card span {
+      display: block;
+    }
+
+    .stat-card .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .notes {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      color: #d7ebff;
+    }
+
+    @media (max-width: 640px) {
+      .hero,
+      .stage {
+        padding: 18px;
+        border-radius: 20px;
+      }
+
+      .viewer {
+        min-height: 320px;
+      }
+
+      canvas {
+        width: min(78vw, 360px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="eyebrow">Sprite Attack Preview</div>
+      <h1>4x4 攻击帧动画播放器</h1>
+      <p>
+        这个页面按 4 列 x 4 行切分你的正方形精灵图，并以固定 <strong>8 FPS</strong> 播放 16 帧攻击动作。
+        默认会读取与当前页面同级目录下的 <code>attack.png</code>。
+      </p>
+    </section>
+
+    <section class="stage">
+      <div class="viewer">
+        <canvas id="spriteCanvas" width="512" height="512" aria-label="攻击动画预览"></canvas>
+        <div id="emptyState" class="empty-state">
+          <div>
+            <strong>等待精灵图</strong><br>
+            请将 4x4 的正方形攻击帧图命名为 <code>attack.png</code> 并放在当前目录，或手动上传预览。
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="toolbar">
+          <label class="file-label" for="fileInput">选择图片</label>
+          <input id="fileInput" type="file" accept="image/*">
+          <button id="playPauseBtn" class="primary" disabled>播放</button>
+          <button id="restartBtn" disabled>重新开始</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat-card">
+            <span class="label">帧率</span>
+            <span class="value">8 FPS</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">布局</span>
+            <span class="value">4 x 4</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">当前帧</span>
+            <span id="frameLabel" class="value">-</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">播放状态</span>
+            <span id="statusLabel" class="value">未加载</span>
+          </div>
+        </div>
+
+        <div class="notes">
+          默认会循环播放全部 16 帧。当前已兼容 <code>1254 x 1254</code> 这类不能被 4 整除的精灵图，会按比例切帧避免取图错位。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const spriteUrl = "./attack.png";
+    const columns = 4;
+    const rows = 4;
+    const totalFrames = columns * rows;
+    const fps = 8;
+    const frameDuration = 1000 / fps;
+
+    const canvas = document.getElementById("spriteCanvas");
+    const ctx = canvas.getContext("2d");
+    const fileInput = document.getElementById("fileInput");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const frameLabel = document.getElementById("frameLabel");
+    const statusLabel = document.getElementById("statusLabel");
+    const emptyState = document.getElementById("emptyState");
+
+    const state = {
+      image: null,
+      currentFrame: 0,
+      isPlaying: false,
+      lastTick: 0,
+      rafId: 0
+    };
+
+    function updateUi() {
+      frameLabel.textContent = state.image ? `${state.currentFrame + 1} / ${totalFrames}` : "-";
+      statusLabel.textContent = state.image ? (state.isPlaying ? "播放中" : "已暂停") : "未加载";
+      playPauseBtn.disabled = !state.image;
+      restartBtn.disabled = !state.image;
+      playPauseBtn.textContent = state.isPlaying ? "暂停" : "播放";
+      emptyState.classList.toggle("hidden", Boolean(state.image));
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawFrame(index) {
+      if (!state.image) {
+        clearCanvas();
+        return;
+      }
+
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      const sourceX = Math.round((column / columns) * state.image.width);
+      const sourceY = Math.round((row / rows) * state.image.height);
+      const nextSourceX = Math.round(((column + 1) / columns) * state.image.width);
+      const nextSourceY = Math.round(((row + 1) / rows) * state.image.height);
+      const sourceWidth = nextSourceX - sourceX;
+      const sourceHeight = nextSourceY - sourceY;
+
+      clearCanvas();
+
+      const scale = Math.min(canvas.width / sourceWidth, canvas.height / sourceHeight);
+      const targetWidth = sourceWidth * scale;
+      const targetHeight = sourceHeight * scale;
+      const targetX = (canvas.width - targetWidth) / 2;
+      const targetY = (canvas.height - targetHeight) / 2;
+
+      ctx.drawImage(
+        state.image,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        targetX,
+        targetY,
+        targetWidth,
+        targetHeight
+      );
+    }
+
+    function stopLoop() {
+      if (state.rafId) {
+        cancelAnimationFrame(state.rafId);
+        state.rafId = 0;
+      }
+    }
+
+    function tick(timestamp) {
+      if (!state.isPlaying || !state.image) {
+        return;
+      }
+
+      if (!state.lastTick) {
+        state.lastTick = timestamp;
+      }
+
+      const elapsed = timestamp - state.lastTick;
+      if (elapsed >= frameDuration) {
+        const steps = Math.floor(elapsed / frameDuration);
+        state.currentFrame = (state.currentFrame + steps) % totalFrames;
+        state.lastTick = timestamp - (elapsed % frameDuration);
+        drawFrame(state.currentFrame);
+        updateUi();
+      }
+
+      state.rafId = requestAnimationFrame(tick);
+    }
+
+    function play() {
+      if (!state.image || state.isPlaying) {
+        return;
+      }
+
+      state.isPlaying = true;
+      state.lastTick = 0;
+      updateUi();
+      state.rafId = requestAnimationFrame(tick);
+    }
+
+    function pause() {
+      state.isPlaying = false;
+      stopLoop();
+      updateUi();
+    }
+
+    function restart() {
+      state.currentFrame = 0;
+      state.lastTick = 0;
+      drawFrame(state.currentFrame);
+      updateUi();
+
+      if (!state.isPlaying) {
+        play();
+      }
+    }
+
+    function setImage(image) {
+      state.image = image;
+      state.currentFrame = 0;
+
+      drawFrame(0);
+      updateUi();
+      play();
+    }
+
+    function loadSprite(source) {
+      const image = new Image();
+      image.onload = () => setImage(image);
+      image.onerror = () => {
+        pause();
+        state.image = null;
+        clearCanvas();
+        updateUi();
+        window.alert("图片加载失败，请确认同级目录存在 attack.png，或手动上传一张 4x4 的正方形精灵图。");
+      };
+      image.src = source;
+    }
+
+    fileInput.addEventListener("change", (event) => {
+      const [file] = event.target.files || [];
+      if (!file) {
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      loadSprite(objectUrl);
+    });
+
+    playPauseBtn.addEventListener("click", () => {
+      if (state.isPlaying) {
+        pause();
+      } else {
+        play();
+      }
+    });
+
+    restartBtn.addEventListener("click", restart);
+
+    updateUi();
+
+    if (spriteUrl) {
+      loadSprite(spriteUrl);
+    }
+  </script>
+</body>
+</html>
